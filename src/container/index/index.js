@@ -1,4 +1,28 @@
 export class Todo {
+  //+ для зберігання данних
+  static #NAME = "todo";
+
+  static #saveData = () => {
+    localStorage.setItem(
+      this.#NAME,
+      JSON.stringify({
+        list: this.#list,
+        count: this.#count,
+      })
+    );
+  };
+
+  static #loadData = () => {
+    const data = localStorage.getItem(this.#NAME);
+
+    if (data) {
+      const { list, count } = JSON.parse(data);
+      this.#list = list;
+      this.#count = count;
+    }
+  };
+  //++ для зберігання данних
+
   static #list = [];
   static #count = 0;
 
@@ -26,6 +50,8 @@ export class Todo {
 
     this.#button.onclick = this.#handleAdd;
 
+    this.#loadData();
+
     this.#render();
 
     // console.log(this.#block, this.#button, this.#input, this.#template);
@@ -35,6 +61,7 @@ export class Todo {
     this.#createTaskData(this.#input.value);
     this.#input.value = "";
     this.#render();
+    this.#saveData();
 
     // console.log(this.#list);
   };
@@ -65,6 +92,12 @@ export class Todo {
 
     btnDo.onclick = this.#handleDo(data, btnDo, el);
 
+    if (data.done) {
+      el.classList.add("task--done");
+      btn.classList.remove("task__button--do");
+      btn.classList.add("task__button--done");
+    }
+
     return el;
   };
 
@@ -75,6 +108,8 @@ export class Todo {
       el.classList.toggle("task--done");
       btn.classList.toggle("task__button--do");
       btn.classList.toggle("task__button--done");
+
+      this.#saveData();
     }
   };
 
@@ -92,7 +127,10 @@ export class Todo {
   static #handleCancel = (data) => () => {
     if (confirm("Видалити задачу?")) {
       const result = this.#deleleById(data.id); //t
-      if (result) this.#render(); //t
+      if (result) {
+        this.#render(); //t
+        this.#saveData();
+      }
 
       // this.#deleleById(data.id); //f
       // this.#render(); //f
